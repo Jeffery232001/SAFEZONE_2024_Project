@@ -1,0 +1,65 @@
+ALL COMMANDS HERE ARE DONE IN CLI
+
+Configuring Access Vlans (in SWITCH): Allows only 1 vlan  
+
+switch> en
+switch# conf t
+
+switch(config)#int [interfaceID](fa0/1)    (single interface/device connected to switch)
+OR
+switch(config)#int range [interfaceIDs] (eg. fa0/1-3) (multiple interfaces connected to switch)
+[Look at fa number at cable close to connected router for fa number]
+ 
+switch(config-if)# switchport mode access
+switch(config-if)# switchport access vlan [vlan number] (eg. if vlan 20,then:
+>>...access vlan 20
+
+
+Configuring trunk (in SWITCH): This allow multiple vlans in a switch 
+ 
+#first set trunk on the interface moving from the switch eg fa0/0
+switch> en
+switch# conf t
+switch(config)#int [interfaceID] (fa0/1)
+switch(config-if)# switchport mode trunk 
+switch(config-if)# do wr
+
+
+Vlans on ROUTER (When multiple VLANS )
+
+router> en
+router# conf t
+router(config)#int [interface ID](use "gig0/0" if connection b/n router & switch =1)
+router(config-if)#no shutdown         - this turns the router device on 
+router(config-if)# do wr          - this saves the config 
+router(config-if)# exit
+router(config)# int gig0/0.[vlan id/no.]
+router(config-subif)#encapsulation dot1Q [vlan id/no.]
+router(config-subif)#ip address [ip of first usable Ip] [subnetmask]
+eg. if Original ip=192.168.7.0
+then >> first usable ip= original+1
+first usable=192.168.7.1
+
+
+Creating DHCP on a ROUTER (when Automatically Assigning Ips to each device in network)
+
+router(config)#service dhcp
+router(config)#ip dhcp pool [name of network-pool](eg.Admin-pool)
+router(dhcp-config)#network [networkipaddress] [subnet mask]
+NB: This Ip address is the network address not the first usable Ip 
+router(dhcp-config)#default-router [first usable ip address](often first ip after Ip address of network)
+router(dhcp-config)#dns-server [first usable ip address](often first ip after Ip address of network))
+router(dhcp-config)#domain-name [networkname + .com](eg. Admin.com)
+router(dhcp-config)#exit
+
+**IMPORTANT: DO VLAN ON ROUTER BEFORE DHCP  to save Time!!!! **
+
+ALL COMMANDS HERE ARE DONE IN CLI
+
+
+to acitvate wireless on pc,
+pc>drag module [bottom dark ash module] out of pc>>put in wpc300n inside it.
+>desktop>pc wireless>connect>refresh>select network>enter password
+
+
+

@@ -1,0 +1,51 @@
+Configuring Access Vlans : Allows only 1 vlan  
+
+switch> en
+switch# conf t
+switch(config)#int + interface ID(fa0/1)
+switch(config-if)# switchport mode access
+switch(config-if)# switchport access vlan + vlan number
+
+
+Configuring trunk: This allow multiple vlans in a switch 
+ 
+#first set trunk on the interface moving from the switch eg fa0/0
+switch> en
+switch# conf t
+switch(config)#int + interface ID(fa0/1)
+switch(config-if)# switchport mode trunk 
+switch(config-if)# do wr
+
+
+Vlans on router 
+
+router> en
+router# conf t
+router(config)#int + interface ID(gig0/0)
+router(config-if)#no shutdown - this turns the router device on 
+router(config-if)# do wr - this saves the config 
+router(config-if)# exit
+router(config)# int gig0/0.+vlan id
+router(config-subif)#encapsulation dot1Q + vlan id
+router(config-subif)#ip address +......... + subnetmask
+
+
+Creating DHCP on a router 
+
+router(config)#service dhcp
+router(config)#ip dhcp pool + name of network-pool(eg.Admin-pool)
+router(dhcp-config)#network + network ip address(192.168.1.0) + subnet mask NB: This Ip address is the network address not the first usable Ip 
+router(dhcp-config)#default-router  + ip address(192.168.1.1)
+router(dhcp-config)#dns-server + ip address(192.168.1.1)
+router(dhcp-config)#domain-name + networkname + .com(eg. Admin.com)
+router(dhcp-config)#exit
+
+
+
+
+
+
+
+
+
+

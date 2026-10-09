@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeff's Corner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #666;
+            padding: 10px 20px;
+        }
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #fff;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Jeff's Corner</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#contacts">Contacts</a></li>
+            <li><a href="#search">Search</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
+    <section>
+        <h2>About Jeff</h2>
+        <p>Hi, I'm Jeff. I enjoy coding, hiking, and reading.</p>
+    </section>
+    <footer>
+        <p>&copy; 2024 Jeff's Corner. All rights reserved.</p>
+    </footer>
+</body>
+</html>
+```
+SMOKE DETECTOR JS
+var DEACTIVATE_TIMER = 5; // in seconds
+var state = 0;
+var current_time = 0;
+function setup() {
+	IoEClient.setup({
+		type: "Motion Detector",
+		states: [{
+			name: "On",
+			type: "bool",
+			controllable: false
+		}]
+	});
+	state = restoreProperty("state", 0);
+	setState(state);
+} function restoreProperty(propertyName, defaultValue)
+{
+	var value = getDeviceProperty(getName(), propertyName);
+	if ( !(value === "" || value == "undefined") ){
+		if ( typeof(defaultValue) == "number" )
+			value = Number(value);
+		setDeviceProperty(getName(), propertyName, value);
+		return value;
+	} return defaultValue;
+} function mouseEvent(pressed, x, y, firstPress) {
+	setState(1);
+} function loop() {
+	if ( state == 1 ) {
+		current_time--;
+		if ( current_time <= 0 )
+setState(0);  }
+	delay(1000);
+} function setState(newState) {
+	state = newState;
+if ( state === 0 ) {
+		digitalWrite(1, LOW);
+	} else {
+		digitalWrite(1, HIGH);
+		current_time = DEACTIVATE_TIMER;
+	} IoEClient.reportStates(state);
+	setDeviceProperty(getName(), "state", state);
+}
+SIREN PYTHON
+from gpio import *
+from time import *
+from ioeclient import *
+from physical import *
+state = 0 # 0 off, 1 on
+# Function to play sound when motion is detected
+def play_sound():
+    # Replace this with code to trigger your sound module or buzzer
+    print("Motion detected! Sound should play here.")
+def main():
+    setup()
+    while True:
+        delay(1000)
+def setup():
+    IoEClient.setup({
+        "type": "Siren",
+        "states": [{
+            "name": "On",
+            "type": "bool",
+            "controllable": True
+        }]
+    })  global state
+    add_event_detect(0, detect)
+    IoEClient.onInputReceive(onInputReceiveDone)
+    state = restoreProperty("state", 0)
+    setState(state)
+def detect():
+    # Call the play_sound function when motion is detected
+    play_sound()
+    processData(customRead(0), False)
+def onInputReceiveDone(analogInput):
+    processData(analogInput, True)
+def restoreProperty(propertyName, defaultValue):
+    value = getDeviceProperty(getName(), propertyName)
+    if not (value is "" or value is None):
+        if type(defaultValue) is int:
+            value = int(value)
+        setDeviceProperty(getName(), propertyName, value)
+        return value
+    return defaultValue
+def mouseEvent(pressed, x, y, firstPress):
+    global state
+    if firstPress:
+        if state == True:
+            setState(0)
+        else:
+            setState(1)
+def processData(data, bIsRemote):
+    if len(data) <= 0:
+        return
+    setState(int(data))
+def setState(newState):
+    global state
+    state = newState
+    if state == True:
+        digitalWrite(1, HIGH)
+    else:
+        digitalWrite(1, LOW)
+    customWrite(0, state)
+    IoEClient.reportStates(state)
+    setDeviceProperty(getName(), "state", state)
+if __name__ == "__main__":
+    main()
+CCTV PY
+from gpio import *
+from time import *
+from ioeclient import *
+from physical import *
+from environment import *
+import math
+state = 0
+def main():
+	setup()
+	while True:
+		loop()		
+#set up client to talk and listen to IoE registration server
+def setup(): global state
+    IoEClient.setup({
+        "type": "Webcam",
+        "states": [{
+            "name": "On",
+            "type": "bool",
+            "controllable": True
+        },
+        {
+            "name": "Image",
+            "type": "image"
+        }]
+    }) IoEClient.onInputReceive(onInputReceiveDone)
+    add_event_detect(0, detect)
+    state = restoreProperty("state", 0)
+    sendReport()
+def onInputReceiveDone(data):
+    processData(data, True)
+def detect():
+    processData(customRead(0), False)
+def restoreProperty(propertyName, defaultValue):
+    value = getDeviceProperty(getName(), propertyName)
+    if  not (value is "" or value is None):
+        if  type(defaultValue) is int :
+            value = int(value)
+        setDeviceProperty(getName(), propertyName, value)
+        return value
+    return defaultValue
+def mouseEvent(pressed, x, y, firstPress):
+    global state
+    if firstPress: if state == True:
+        	setState(0)
+        else: setState(1)
+#send captured image file path to registration server
+def loop(): sendReport()
+    delay(1000)
+#process data received from server
+def processData(data, bIsRemote):
+    if  len(data) <= 0 :
+        return
+    data = data.split(",")
+    setState(int(data[0]))
+#send image path to server
+imageLoop=0
+def sendReport():
+    global state
+    global imageLoop
+    report = str(state) + ","   # comma seperated states
+    if state is 0: report += '../art/IoE/SmartDevices/camera_off.png'
+    else:
+        report += '../art/IoE/SmartDevices/camera_image'+ str(imageLoop)+'.png'
+        imageLoop = imageLoop + 1
+        if  imageLoop >= 3:
+            imageLoop =0
+    customWrite(0, report)
+    IoEClient.reportStates(report)
+    setDeviceProperty(getName(), "state", state)
+#set state and update component image to reflect the current state
+def setState(newState):
+    global state
+    if  newState is 0 : digitalWrite(1, LOW)
+    else: digitalWrite(1, HIGH)
+    state = newState
+if __name__ == "__main__":
+    main()
+SMOKE DETECTOR JS 
+var ENVIRONMENT_NAME = "Smoke";
+var state = 0;
+var level = 0;
+var ALARM_LEVEL = 10;
+function setup() {
+	IoEClient.setup({
+		type: "Smoke Detector",
+		states: [{
+			name: "Alarm",
+			type: "bool",
+			controllable: false
+		},
+		{
+			name: "Level",
+			type: "number",
+			controllable: false
+		}]
+	});IoEClient.onInputReceive = function(input) {
+		processData(input, true);
+	}; attachInterrupt(0, function() {
+		processData(customRead(0), false);
+	}); state = restoreProperty("state", 0);
+	restoreProperty("Alarm Level", 10);
+            setState(state);
+} function restoreProperty(propertyName, defaultValue)
+{ 
+var value = getDeviceProperty(getName(), propertyName);
+	if ( !(value === "" || value == "undefined") ){
+		if ( typeof(defaultValue) == "number" )
+			value = Number(value);
+		setDeviceProperty(getName(), propertyName, value);
+		return value;
+	} return defaultValue;
+} function loop() {
+	var value = Environment.get(ENVIRONMENT_NAME);
+	//Serial.println(value);
+	if (value >= 0)
+		setLevel(Environment.get(ENVIRONMENT_NAME));
+	delay(1000);
+} 
+function processData(data, bIsRemote) {
+	if (data.length <= 0 )
+		return; data = data.split(",");
+	setState(parseInt(data[0]));
+} function sendReport()
+{
+var report = state + "," + level;	// comma seperated states
+	IoEClient.reportStates(report);
+	setDeviceProperty(getName(), "state", state);
+	setDeviceProperty(getName(), "level", level);
+} function setState(newState) {
+	state = newState;
+if (newState === 0)
+		digitalWrite(1, LOW);
+	else
+digitalWrite(1, HIGH);
+	sendReport();
+} function setLevel(newLevel) {
+	if (level == newLevel)
+	return; level = newLevel;
+	if (level > ALARM_LEVEL)
+		setState(1);
+else
+		setState(0);
+	sendReport(); }
+WINDOW IOT 
+from gpio import *
+from time import *
+from ioeclient import *
+from physical import *
+from environment import *
+import math
+ENVIRONMENTS = ["Argon", "CO", "CO2", "Hydrogen", "Helium", "Methane", "Nitrogen", "O2", "Ozone", "Propane", "Smoke"]
+ENVIRONMENT_MAX_IMPACT = -0.01; # 2% max when door opens
+TEMPERATURE_TRANSFERENCE_MULTIPLIER = 1.20; # increase speed 25% when door open
+HUMIDITY_TRANSFERENCE_MULTIPLIER = 1.20
+GASES_TRANSFERENCE_MULTIPLIER = 2
+state = 0
+def main(): setup()
+	while True: loop()
+#set up client to talk and listen to IoE registration server
+def setup(): IoEClient.setup({
+        "type": "Window",
+        "states": [{
+            "name": "On",
+            "type": "bool",
+            "controllable": True
+        }]
+    })   IoEClient.onInputReceive(onInputReceiveDone)
+    add_event_detect(0, detect)
+    state = restoreProperty("state", 0)
+    setState(state)
+def onInputReceiveDone(data):
+    processData(data, True)
+def detect(): processData(customRead(0), false)
+def restoreProperty(propertyName, defaultValue):
+    value = getDeviceProperty(getName(), propertyName)
+    if  not (value is "" or value is None):
+        if  type(defaultValue) is int :
+            value = int(value)
+        setDeviceProperty(getName(), propertyName, value)
+        return value
+    return defaultValue
+def mouseEvent(pressed, x, y, firstPress):
+    global state
+    if firstPress: if state == True:
+        	setState(0)
+        else: setState(1)
+#update carbon dioxide and carbon monoxide and send new data to registration server
+def loop(): updateEnvironment()
+    delay(1000)
+#process data received from server
+def processData(data, bIsRemote):
+    if  len(data) <= 0 :
+        return
+    data = data.split(",")
+    setState(int(data[0]))
+#set state and update component image to reflect the current state
+def setState(newState):
+    global state
+    if  newState is 0 : digitalWrite(1, LOW)
+    else:  digitalWrite(1, HIGH)
+    state = newState
+    customWrite(0, state)
+    IoEClient.reportStates(state)
+    setDeviceProperty(getName(), "state", state)
+def updateEnvironment():
+    global ENVIRONMENTS
+    global ENVIRONMENT_MAX_IMPACT
+    global GASES_TRANSFERENCE_MULTIPLIER
+    global TEMPERATURE_TRANSFERENCE_MULTIPLIER
+    global HUMIDITY_TRANSFERENCE_MULTIPLIER
+    global state
+    if  state == 1:
+        for i in range (0,len(ENVIRONMENTS)):
+            max = Environment.get(ENVIRONMENTS[i]) * ENVIRONMENT_MAX_IMPACT
+            # the max is reached in an hour, so we divide by 3600 to get seconds
+            # then this rate is also based on 100,000 cubic meters (approx. coporate office size)
+            rate = float(max) / 3600 * 100000 / Environment.getVolume()
+            Environment.setContribution(ENVIRONMENTS[i], rate, max, True)
+            Environment.setTransferenceMultiplier(ENVIRONMENTS[i], GASES_TRANSFERENCE_MULTIPLIER)
+        Environment.setTransferenceMultiplier("Ambient Temperature", TEMPERATURE_TRANSFERENCE_MULTIPLIER)
+        Environment.setTransferenceMultiplier("Humidity", HUMIDITY_TRANSFERENCE_MULTIPLIER)
+    else: for j in range (0, len(ENVIRONMENTS)):
+            Environment.setContribution(ENVIRONMENTS[j], 0, 0, True)
+            Environment.removeCumulativeContribution(ENVIRONMENTS[j])
+            Environment.setTransferenceMultiplier(ENVIRONMENTS[j], 1)
+        Environment.setTransferenceMultiplier("Ambient Temperature", 1)
+        Environment.setTransferenceMultiplier("Humidity", 1)
+if __name__ == "__main__":
+    main()
+SIREN JS
+var state = 0; // 0 off, 1 on
+function setup() {
+	IoEClient.setup({
+		type: "Siren",
+		states: [{
+			name: "On",
+			type: "bool",
+			controllable: true
+		}]
+	}); IoEClient.onInputReceive = function(input) {
+		processData(input, true);
+	}; attachInterrupt(0, function() {
+		processData(customRead(0), false);
+	}); state = restoreProperty("state", 0);
+	setState(state);
+} function restoreProperty(propertyName, defaultValue)
+{ 
+var value = getDeviceProperty( getName(), propertyName);
+	if ( !(value === "" || value == "undefined") ){
+		if ( typeof(defaultValue) == "number" )
+			value = Number(value);
+		setDeviceProperty( getName(), propertyName, value);
+		return value;
+	} return defaultValue;
+} function mouseEvent(pressed, x, y, firstPress) {
+	if (firstPress)
+		setState(state ? 0 : 1);
+} function processData(data, bIsRemote) {
+	if ( data.length <= 0  )
+		return;
+setState(parseInt(data));
+} function setState(newState) {
+	state = newState;
+            digitalWrite(1, state ? HIGH : LOW);
+	customWrite(0, state);
+	IoEClient.reportStates(state);
+	setDeviceProperty( getName(), "state", state);
+}
+    while True:
+        sleep(0)
+FIRE SPRINKLER JS
+var WATERLEVEL_RATE = 0.1;	// 0.1 cm per second
+var HUMIDITY_RATE = 5/3600; // 5% per hour
+var VOLUME_AT_RATE = 100000;
+var state = 0;	// 0 off, 1 on
+function setup() {
+	IoEClient.setup({
+		type: "Fire Sprinkler",
+		states: [
+		{ name: "Status",
+			type: "bool",
+			controllable: true
+		}			]
+	});IoEClient.onInputReceive = function(input) {
+		processData(input, true);
+	}; attachInterrupt(0, function() {
+		processData(customRead(0), false);
+	}); setState(state);
+} function mouseEvent(pressed, x, y, firstPress) {
+	if (firstPress)
+		setState(state ? 0 : 1);
+} function processData(data, bIsRemote) {
+	if ( data.length <= 0  )
+		return;
+	setState(parseInt(data));
+} function setState(newState)
+{
+	state = newState;
+	analogWrite(A1, state);
+	customWrite(0, state);
+	IoEClient.reportStates(state);
+	setDeviceProperty(getName(), "state", state);
+	updateEnvironment();
+} function updateEnvironment()
+{  if (state == 1){
+		var volumeRatio = VOLUME_AT_RATE / Environment.getVolume();
+		Environment.setContribution("Water Level", WATERLEVEL_RATE*volumeRatio);
+		Environment.setContribution("Humidity", HUMIDITY_RATE*volumeRatio);
+	} else { 
+Environment.setContribution("Water Level", 0);
+Environment.setContribution("Humidity", 0);
+	}
+}
